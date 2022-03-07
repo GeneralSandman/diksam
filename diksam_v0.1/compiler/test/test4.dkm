@@ -1,3 +1,16 @@
-int i;
+int print(string str);
 
-i = 22;
+
+double double_value;
+
+double_value = 2.0;
+
+
+print("hell world\n");
+
+func_cast(3, 4);
+
+int func_cast(int a, int b)
+{
+    int i = a + b;
+}

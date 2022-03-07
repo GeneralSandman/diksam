@@ -4,22 +4,21 @@
 #include "diksamc.h"
 
 DKC_Compiler *
-DKC_create_compiler(void)
-{
-    MEM_Storage storage;
+DKC_create_compiler(void) {
+    MEM_Storage   storage;
     DKC_Compiler *compiler;
 
-    storage = MEM_open_storage(0);
-    compiler = MEM_storage_malloc(storage,
+    storage                       = MEM_open_storage(0);
+    compiler                      = MEM_storage_malloc(storage,
                                   sizeof(struct DKC_Compiler_tag));
-    compiler->compile_storage = storage;
-    compiler->function_list = NULL;
-    compiler->function_count = 0;
-    compiler->declaration_list = NULL;
-    compiler->statement_list = NULL;
-    compiler->current_block = NULL;
+    compiler->compile_storage     = storage;
+    compiler->function_list       = NULL;
+    compiler->function_count      = 0;
+    compiler->declaration_list    = NULL;
+    compiler->statement_list      = NULL;
+    compiler->current_block       = NULL;
     compiler->current_line_number = 1;
-    compiler->input_mode = DKC_FILE_INPUT_MODE;
+    compiler->input_mode          = DKC_FILE_INPUT_MODE;
 #ifdef EUC_SOURCE
     compiler->source_encoding = EUC_ENCODING;
 #else
@@ -39,9 +38,8 @@ DKC_create_compiler(void)
     return compiler;
 }
 
-static DVM_Executable *do_compile(DKC_Compiler *compiler)
-{
-    extern int yyparse(void);
+static DVM_Executable *do_compile(DKC_Compiler *compiler) {
+    extern int      yyparse(void);
     DVM_Executable *exe;
 
     dkc_set_current_compiler(compiler);
@@ -60,13 +58,12 @@ static DVM_Executable *do_compile(DKC_Compiler *compiler)
 }
 
 DVM_Executable *
-DKC_compile(DKC_Compiler *compiler, FILE *fp)
-{
-    extern FILE *yyin;
+DKC_compile(DKC_Compiler *compiler, FILE *fp) {
+    extern FILE *   yyin;
     DVM_Executable *exe;
 
     compiler->current_line_number = 1;
-    compiler->input_mode = DKC_FILE_INPUT_MODE;
+    compiler->input_mode          = DKC_FILE_INPUT_MODE;
 
     yyin = fp;
 
@@ -78,14 +75,13 @@ DKC_compile(DKC_Compiler *compiler, FILE *fp)
 }
 
 DVM_Executable *
-DKC_compile_string(DKC_Compiler *compiler, char **lines)
-{
-    extern int yyparse(void);
+DKC_compile_string(DKC_Compiler *compiler, char **lines) {
+    extern int      yyparse(void);
     DVM_Executable *exe;
 
     dkc_set_source_string(lines);
     compiler->current_line_number = 1;
-    compiler->input_mode = DKC_STRING_INPUT_MODE;
+    compiler->input_mode          = DKC_STRING_INPUT_MODE;
 
     exe = do_compile(compiler);
 
@@ -94,9 +90,7 @@ DKC_compile_string(DKC_Compiler *compiler, char **lines)
     return exe;
 }
 
-void
-DKC_dispose_compiler(DKC_Compiler *compiler)
-{
+void DKC_dispose_compiler(DKC_Compiler *compiler) {
     FunctionDefinition *fd_pos;
 
     for (fd_pos = compiler->function_list; fd_pos; fd_pos = fd_pos->next) {

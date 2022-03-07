@@ -363,8 +363,10 @@ static DVM_Value execute(DVM_VirtualMachine *dvm, Function *func,
     exe   = dvm->executable;
 
     for (pc = dvm->pc; pc < code_size;) {
+        /*
         fprintf(stderr, "%s\tsp(%d)\t\n", dvm_opcode_info[code[pc]].mnemonic,
                 dvm->stack.stack_pointer);
+                */
 
         switch (code[pc]) {
         case DVM_PUSH_INT_1BYTE:
