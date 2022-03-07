@@ -15,43 +15,40 @@ typedef struct {
 } LabelTable;
 
 typedef struct {
-    int         size;
-    int         alloc_size;
-    DVM_Byte    *code;
-    int         label_table_size;
-    int         label_table_alloc_size;
-    LabelTable  *label_table;
-    int         line_number_size;
-    DVM_LineNumber      *line_number;
+    int             size;
+    int             alloc_size;
+    DVM_Byte *      code;
+    int             label_table_size;
+    int             label_table_alloc_size;
+    LabelTable *    label_table;
+    int             line_number_size;
+    DVM_LineNumber *line_number;
 } OpcodeBuf;
 
 static DVM_Executable *
-alloc_executable(void)
-{
-    DVM_Executable      *exe;
+alloc_executable(void) {
+    DVM_Executable *exe;
 
-    exe = MEM_malloc(sizeof(DVM_Executable));
-    exe->constant_pool_count = 0;
-    exe->constant_pool = NULL;
+    exe                        = MEM_malloc(sizeof(DVM_Executable));
+    exe->constant_pool_count   = 0;
+    exe->constant_pool         = NULL;
     exe->global_variable_count = 0;
-    exe->global_variable = NULL;
-    exe->function_count = 0;
-    exe->function = NULL;
-    exe->code_size = 0;
-    exe->code = NULL;
+    exe->global_variable       = NULL;
+    exe->function_count        = 0;
+    exe->function              = NULL;
+    exe->code_size             = 0;
+    exe->code                  = NULL;
 
     return exe;
 }
 
 static int
-add_constant_pool(DVM_Executable *exe, DVM_ConstantPool *cp)
-{
+add_constant_pool(DVM_Executable *exe, DVM_ConstantPool *cp) {
     int ret;
 
-    exe->constant_pool
-        = MEM_realloc(exe->constant_pool,
-                      sizeof(DVM_ConstantPool)
-                      * (exe->constant_pool_count + 1));
+    exe->constant_pool                           = MEM_realloc(exe->constant_pool,
+                                     sizeof(DVM_ConstantPool)
+                                         * (exe->constant_pool_count + 1));
     exe->constant_pool[exe->constant_pool_count] = *cp;
 
     ret = exe->constant_pool_count;
@@ -63,19 +60,18 @@ add_constant_pool(DVM_Executable *exe, DVM_ConstantPool *cp)
 static DVM_TypeSpecifier *copy_type_specifier(TypeSpecifier *src);
 
 static DVM_LocalVariable *
-copy_parameter_list(ParameterList *src, int *param_count_p)
-{
-    int param_count = 0;
-    ParameterList *param;
+copy_parameter_list(ParameterList *src, int *param_count_p) {
+    int                param_count = 0;
+    ParameterList *    param;
     DVM_LocalVariable *dest;
-    int i;
+    int                i;
 
     for (param = src; param; param = param->next) {
         param_count++;
     }
     *param_count_p = param_count;
-    dest = MEM_malloc(sizeof(DVM_LocalVariable) * param_count);
-    
+    dest           = MEM_malloc(sizeof(DVM_LocalVariable) * param_count);
+
     for (param = src, i = 0; param; param = param->next, i++) {
         dest[i].name = MEM_strdup(param->name);
         dest[i].type = copy_type_specifier(param->type);
@@ -85,10 +81,9 @@ copy_parameter_list(ParameterList *src, int *param_count_p)
 }
 
 static DVM_LocalVariable *
-copy_local_variables(FunctionDefinition *fd, int param_count)
-{
-    int i;
-    int local_variable_count;
+copy_local_variables(FunctionDefinition *fd, int param_count) {
+    int                i;
+    int                local_variable_count;
     DVM_LocalVariable *dest;
 
     local_variable_count = fd->local_variable_count - param_count;
@@ -96,23 +91,20 @@ copy_local_variables(FunctionDefinition *fd, int param_count)
     dest = MEM_malloc(sizeof(DVM_LocalVariable) * local_variable_count);
 
     for (i = 0; i < local_variable_count; i++) {
-        dest[i].name
-            = MEM_strdup(fd->local_variable[i+param_count]->name);
-        dest[i].type
-            = copy_type_specifier(fd->local_variable[i+param_count]->type);
+        dest[i].name = MEM_strdup(fd->local_variable[i + param_count]->name);
+        dest[i].type = copy_type_specifier(fd->local_variable[i + param_count]->type);
     }
 
     return dest;
 }
 
 static DVM_TypeSpecifier *
-copy_type_specifier(TypeSpecifier *src)
-{
+copy_type_specifier(TypeSpecifier *src) {
     DVM_TypeSpecifier *dest;
-    int derive_count = 0;
-    TypeDerive *derive;
-    int param_count;
-    int i;
+    int                derive_count = 0;
+    TypeDerive *       derive;
+    int                param_count;
+    int                i;
 
     dest = MEM_malloc(sizeof(DVM_TypeSpecifier));
 
@@ -122,15 +114,14 @@ copy_type_specifier(TypeSpecifier *src)
         derive_count++;
     }
     dest->derive_count = derive_count;
-    dest->derive = MEM_malloc(sizeof(DVM_TypeDerive) * derive_count);
+    dest->derive       = MEM_malloc(sizeof(DVM_TypeDerive) * derive_count);
     for (i = 0, derive = src->derive; derive;
          derive = derive->next, i++) {
         switch (derive->tag) {
         case DVM_FUNCTION_DERIVE:
-            dest->derive[i].tag = DVM_FUNCTION_DERIVE;
-            dest->derive[i].u.function_d.parameter
-                = copy_parameter_list(derive->u.function_d.parameter_list,
-                                      &param_count);
+            dest->derive[i].tag                          = DVM_FUNCTION_DERIVE;
+            dest->derive[i].u.function_d.parameter       = copy_parameter_list(derive->u.function_d.parameter_list,
+                                                                         &param_count);
             dest->derive[i].u.function_d.parameter_count = param_count;
             break;
         default:
@@ -142,66 +133,60 @@ copy_type_specifier(TypeSpecifier *src)
 }
 
 static void
-add_global_variable(DKC_Compiler *compiler, DVM_Executable *exe)
-{
+add_global_variable(DKC_Compiler *compiler, DVM_Executable *exe) {
     DeclarationList *dl;
-    int i;
-    int var_count = 0;
+    int              i;
+    int              var_count = 0;
 
     for (dl = compiler->declaration_list; dl; dl = dl->next) {
         var_count++;
     }
     exe->global_variable_count = var_count;
-    exe->global_variable = MEM_malloc(sizeof(DVM_Variable) * var_count);
+    exe->global_variable       = MEM_malloc(sizeof(DVM_Variable) * var_count);
 
     for (dl = compiler->declaration_list, i = 0; dl; dl = dl->next, i++) {
         exe->global_variable[i].name = MEM_strdup(dl->declaration->name);
-        exe->global_variable[i].type
-            = copy_type_specifier(dl->declaration->type);
+        exe->global_variable[i].type = copy_type_specifier(dl->declaration->type);
     }
 }
 
 static void
-add_line_number(OpcodeBuf *ob, int line_number, int start_pc)
-{
+add_line_number(OpcodeBuf *ob, int line_number, int start_pc) {
     if (ob->line_number == NULL
-        || (ob->line_number[ob->line_number_size-1].line_number
+        || (ob->line_number[ob->line_number_size - 1].line_number
             != line_number)) {
         ob->line_number = MEM_realloc(ob->line_number,
                                       sizeof(DVM_LineNumber)
-                                      * (ob->line_number_size + 1));
+                                          * (ob->line_number_size + 1));
 
         ob->line_number[ob->line_number_size].line_number = line_number;
-        ob->line_number[ob->line_number_size].start_pc = start_pc;
-        ob->line_number[ob->line_number_size].pc_count
-            = ob->size - start_pc;
+        ob->line_number[ob->line_number_size].start_pc    = start_pc;
+        ob->line_number[ob->line_number_size].pc_count    = ob->size - start_pc;
         ob->line_number_size++;
 
     } else {
-        ob->line_number[ob->line_number_size-1].pc_count
-            += ob->size - start_pc;
+        ob->line_number[ob->line_number_size - 1].pc_count += ob->size - start_pc;
     }
 }
 
 static void
-generate_code(OpcodeBuf *ob, int line_number, DVM_Opcode code, ...)
-{
-    va_list     ap;
-    int         i;
-    char        *param;
-    int         param_count;
-    int         start_pc;
+generate_code(OpcodeBuf *ob, int line_number, DVM_Opcode code, ...) {
+    va_list ap;
+    int     i;
+    char *  param;
+    int     param_count;
+    int     start_pc;
 
     va_start(ap, code);
 
-    param = dvm_opcode_info[(int)code].parameter;
+    param       = dvm_opcode_info[(int)code].parameter;
     param_count = strlen(param);
     if (ob->alloc_size < ob->size + 1 + (param_count * 2)) {
         ob->code = MEM_realloc(ob->code, ob->alloc_size + OPCODE_ALLOC_SIZE);
         ob->alloc_size += OPCODE_ALLOC_SIZE;
     }
 
-    start_pc = ob->size;
+    start_pc           = ob->size;
     ob->code[ob->size] = code;
     ob->size++;
     for (i = 0; param[i] != '\0'; i++) {
@@ -212,13 +197,13 @@ generate_code(OpcodeBuf *ob, int line_number, DVM_Opcode code, ...)
             ob->size++;
             break;
         case 's': /* short(2byte int) */
-            ob->code[ob->size] = (DVM_Byte)(value >> 8);
-            ob->code[ob->size+1] = (DVM_Byte)(value & 0xff);
+            ob->code[ob->size]     = (DVM_Byte)(value >> 8);
+            ob->code[ob->size + 1] = (DVM_Byte)(value & 0xff);
             ob->size += 2;
             break;
         case 'p': /* constant pool index */
-            ob->code[ob->size] = (DVM_Byte)(value >> 8);
-            ob->code[ob->size+1] = (DVM_Byte)(value & 0xff);
+            ob->code[ob->size]     = (DVM_Byte)(value >> 8);
+            ob->code[ob->size + 1] = (DVM_Byte)(value & 0xff);
             ob->size += 2;
             break;
         default:
@@ -232,8 +217,7 @@ generate_code(OpcodeBuf *ob, int line_number, DVM_Opcode code, ...)
 
 static void
 generate_boolean_expression(DVM_Executable *cf, Expression *expr,
-                            OpcodeBuf *ob)
-{
+                            OpcodeBuf *ob) {
     if (expr->u.boolean_value) {
         generate_code(ob, expr->line_number, DVM_PUSH_INT_1BYTE, 1);
     } else {
@@ -243,10 +227,9 @@ generate_boolean_expression(DVM_Executable *cf, Expression *expr,
 
 static void
 generate_int_expression(DVM_Executable *cf, Expression *expr,
-                        OpcodeBuf *ob)
-{
+                        OpcodeBuf *ob) {
     DVM_ConstantPool cp;
-    int cp_idx;
+    int              cp_idx;
 
     if (expr->u.int_value >= 0 && expr->u.int_value < 256) {
         generate_code(ob, expr->line_number,
@@ -255,9 +238,9 @@ generate_int_expression(DVM_Executable *cf, Expression *expr,
         generate_code(ob, expr->line_number,
                       DVM_PUSH_INT_2BYTE, expr->u.int_value);
     } else {
-        cp.tag = DVM_CONSTANT_INT;
+        cp.tag     = DVM_CONSTANT_INT;
         cp.u.c_int = expr->u.int_value;
-        cp_idx = add_constant_pool(cf, &cp);
+        cp_idx     = add_constant_pool(cf, &cp);
 
         generate_code(ob, expr->line_number, DVM_PUSH_INT, cp_idx);
     }
@@ -265,19 +248,18 @@ generate_int_expression(DVM_Executable *cf, Expression *expr,
 
 static void
 generate_double_expression(DVM_Executable *cf, Expression *expr,
-                           OpcodeBuf *ob)
-{
+                           OpcodeBuf *ob) {
     DVM_ConstantPool cp;
-    int cp_idx;
+    int              cp_idx;
 
     if (expr->u.double_value == 0.0) {
         generate_code(ob, expr->line_number, DVM_PUSH_DOUBLE_0);
     } else if (expr->u.double_value == 1.0) {
         generate_code(ob, expr->line_number, DVM_PUSH_DOUBLE_1);
     } else {
-        cp.tag = DVM_CONSTANT_DOUBLE;
+        cp.tag        = DVM_CONSTANT_DOUBLE;
         cp.u.c_double = expr->u.double_value;
-        cp_idx = add_constant_pool(cf, &cp);
+        cp_idx        = add_constant_pool(cf, &cp);
 
         generate_code(ob, expr->line_number, DVM_PUSH_DOUBLE, cp_idx);
     }
@@ -285,20 +267,18 @@ generate_double_expression(DVM_Executable *cf, Expression *expr,
 
 static void
 generate_string_expression(DVM_Executable *cf, Expression *expr,
-                           OpcodeBuf *ob)
-{
+                           OpcodeBuf *ob) {
     DVM_ConstantPool cp;
-    int cp_idx;
+    int              cp_idx;
 
-    cp.tag = DVM_CONSTANT_STRING;
+    cp.tag        = DVM_CONSTANT_STRING;
     cp.u.c_string = expr->u.string_value;
-    cp_idx = add_constant_pool(cf, &cp);
+    cp_idx        = add_constant_pool(cf, &cp);
     generate_code(ob, expr->line_number, DVM_PUSH_STRING, cp_idx);
 }
 
 static int
-get_opcode_type_offset(DVM_BasicType basic_type)
-{
+get_opcode_type_offset(DVM_BasicType basic_type) {
     switch (basic_type) {
     case DVM_BOOLEAN_TYPE:
         return 0;
@@ -321,8 +301,7 @@ get_opcode_type_offset(DVM_BasicType basic_type)
 
 static void
 generate_identifier_expression(DVM_Executable *exe, Block *block,
-                               Expression *expr, OpcodeBuf *ob)
-{
+                               Expression *expr, OpcodeBuf *ob) {
     if (expr->u.identifier.is_function) {
         generate_code(ob, expr->line_number,
                       DVM_PUSH_FUNCTION,
@@ -331,18 +310,18 @@ generate_identifier_expression(DVM_Executable *exe, Block *block,
     }
 
     if (expr->u.identifier.u.declaration->is_local) {
-        generate_code(ob,  expr->line_number,
+        generate_code(ob, expr->line_number,
                       DVM_PUSH_STACK_INT
-                      + get_opcode_type_offset(expr->u.identifier
-                                               .u.declaration
-                                               ->type->basic_type),
+                          + get_opcode_type_offset(expr->u.identifier
+                                                       .u.declaration
+                                                       ->type->basic_type),
                       expr->u.identifier.u.declaration->variable_index);
     } else {
         generate_code(ob, expr->line_number,
                       DVM_PUSH_STATIC_INT
-                      + get_opcode_type_offset(expr->u.identifier
-                                               .u.declaration
-                                               ->type->basic_type),
+                          + get_opcode_type_offset(expr->u.identifier
+                                                       .u.declaration
+                                                       ->type->basic_type),
                       expr->u.identifier.u.declaration->variable_index);
     }
 }
@@ -352,17 +331,16 @@ static void generate_expression(DVM_Executable *exe, Block *current_block,
 
 static void
 generate_pop_to_identifier(Declaration *decl, int line_number,
-                           OpcodeBuf *ob)
-{
+                           OpcodeBuf *ob) {
     if (decl->is_local) {
         generate_code(ob, line_number,
                       DVM_POP_STACK_INT
-                      + get_opcode_type_offset(decl->type->basic_type),
+                          + get_opcode_type_offset(decl->type->basic_type),
                       decl->variable_index);
     } else {
         generate_code(ob, line_number,
                       DVM_POP_STATIC_INT
-                      + get_opcode_type_offset(decl->type->basic_type),
+                          + get_opcode_type_offset(decl->type->basic_type),
                       decl->variable_index);
     }
 }
@@ -370,42 +348,41 @@ generate_pop_to_identifier(Declaration *decl, int line_number,
 static void
 generate_assign_expression(DVM_Executable *exe, Block *block,
                            Expression *expr, OpcodeBuf *ob,
-                           DVM_Boolean is_toplevel)
-{
-    if (expr->u.assign_expression.operator != NORMAL_ASSIGN) {
-        generate_identifier_expression(exe, block, 
+                           DVM_Boolean is_toplevel) {
+    if (expr->u.assign_expression.operator!= NORMAL_ASSIGN) {
+        generate_identifier_expression(exe, block,
                                        expr->u.assign_expression.left,
                                        ob);
     }
     generate_expression(exe, block, expr->u.assign_expression.operand, ob);
 
     switch (expr->u.assign_expression.operator) {
-    case NORMAL_ASSIGN :
+    case NORMAL_ASSIGN:
         break;
     case ADD_ASSIGN:
         generate_code(ob, expr->line_number,
                       DVM_ADD_INT
-                      + get_opcode_type_offset(expr->type->basic_type));
+                          + get_opcode_type_offset(expr->type->basic_type));
         break;
     case SUB_ASSIGN:
         generate_code(ob, expr->line_number,
                       DVM_SUB_INT
-                      + get_opcode_type_offset(expr->type->basic_type));
+                          + get_opcode_type_offset(expr->type->basic_type));
         break;
     case MUL_ASSIGN:
         generate_code(ob, expr->line_number,
                       DVM_MUL_INT
-                      + get_opcode_type_offset(expr->type->basic_type));
+                          + get_opcode_type_offset(expr->type->basic_type));
         break;
     case DIV_ASSIGN:
         generate_code(ob, expr->line_number,
                       DVM_DIV_INT
-                      + get_opcode_type_offset(expr->type->basic_type));
+                          + get_opcode_type_offset(expr->type->basic_type));
         break;
     case MOD_ASSIGN:
         generate_code(ob, expr->line_number,
                       DVM_MOD_INT
-                      + get_opcode_type_offset(expr->type->basic_type));
+                          + get_opcode_type_offset(expr->type->basic_type));
         break;
     default:
         DBG_assert(0, ("operator..%d\n", expr->u.assign_expression.operator));
@@ -415,7 +392,7 @@ generate_assign_expression(DVM_Executable *exe, Block *block,
         generate_code(ob, expr->line_number, DVM_DUPLICATE);
     }
     generate_pop_to_identifier(expr->u.assign_expression.left
-                               ->u.identifier.u.declaration,
+                                   ->u.identifier.u.declaration,
                                expr->line_number,
                                ob);
 }
@@ -423,10 +400,9 @@ generate_assign_expression(DVM_Executable *exe, Block *block,
 static void
 generate_binary_expression(DVM_Executable *exe, Block *block,
                            Expression *expr, DVM_Opcode code,
-                           OpcodeBuf *ob)
-{
+                           OpcodeBuf *ob) {
     DBG_assert(expr->u.binary_expression.left->type->basic_type
-               == expr->u.binary_expression.right->type->basic_type,
+                   == expr->u.binary_expression.right->type->basic_type,
                ("left..%d, right..%d",
                 expr->u.binary_expression.left->type->basic_type,
                 expr->u.binary_expression.right->type->basic_type));
@@ -435,20 +411,19 @@ generate_binary_expression(DVM_Executable *exe, Block *block,
     generate_expression(exe, block, expr->u.binary_expression.right, ob);
     generate_code(ob, expr->line_number,
                   code
-                  + get_opcode_type_offset(expr->u.binary_expression.left
-                                           ->type->basic_type));
+                      + get_opcode_type_offset(expr->u.binary_expression.left
+                                                   ->type->basic_type));
 }
 
 static int
-get_label(OpcodeBuf *ob)
-{
+get_label(OpcodeBuf *ob) {
     int ret;
 
     if (ob->label_table_alloc_size < ob->label_table_size + 1) {
         ob->label_table = MEM_realloc(ob->label_table,
                                       (ob->label_table_alloc_size
                                        + LABEL_TABLE_ALLOC_SIZE)
-                                      * sizeof(LabelTable));
+                                          * sizeof(LabelTable));
         ob->label_table_alloc_size += LABEL_TABLE_ALLOC_SIZE;
     }
     ret = ob->label_table_size;
@@ -458,16 +433,14 @@ get_label(OpcodeBuf *ob)
 }
 
 static void
-set_label(OpcodeBuf *ob, int label)
-{
+set_label(OpcodeBuf *ob, int label) {
     ob->label_table[label].label_address = ob->size;
 }
 
 static void
 generate_logical_and_expression(DVM_Executable *exe, Block *block,
                                 Expression *expr,
-                                OpcodeBuf *ob)
-{
+                                OpcodeBuf * ob) {
     int false_label;
 
     false_label = get_label(ob);
@@ -482,8 +455,7 @@ generate_logical_and_expression(DVM_Executable *exe, Block *block,
 static void
 generate_logical_or_expression(DVM_Executable *exe, Block *block,
                                Expression *expr,
-                               OpcodeBuf *ob)
-{
+                               OpcodeBuf * ob) {
     int true_label;
 
     true_label = get_label(ob);
@@ -497,8 +469,7 @@ generate_logical_or_expression(DVM_Executable *exe, Block *block,
 
 static void
 generate_cast_expression(DVM_Executable *exe, Block *block,
-                         Expression *expr, OpcodeBuf *ob)
-{
+                         Expression *expr, OpcodeBuf *ob) {
     generate_expression(exe, block, expr->u.cast.operand, ob);
     switch (expr->u.cast.type) {
     case INT_TO_DOUBLE_CAST:
@@ -524,8 +495,7 @@ generate_cast_expression(DVM_Executable *exe, Block *block,
 static void
 generate_inc_dec_expression(DVM_Executable *exe, Block *block,
                             Expression *expr, ExpressionKind kind,
-                            OpcodeBuf *ob, DVM_Boolean is_toplevel)
-{
+                            OpcodeBuf *ob, DVM_Boolean is_toplevel) {
     generate_expression(exe, block, expr->u.inc_dec.operand, ob);
 
     if (kind == INCREMENT_EXPRESSION) {
@@ -538,17 +508,16 @@ generate_inc_dec_expression(DVM_Executable *exe, Block *block,
         generate_code(ob, expr->line_number, DVM_DUPLICATE);
     }
     generate_pop_to_identifier(expr->u.inc_dec.operand
-                               ->u.identifier.u.declaration,
+                                   ->u.identifier.u.declaration,
                                expr->line_number,
                                ob);
 }
 
 static void
 generate_function_call_expression(DVM_Executable *exe, Block *block,
-                                  Expression *expr, OpcodeBuf *ob)
-{
+                                  Expression *expr, OpcodeBuf *ob) {
     FunctionCallExpression *fce = &expr->u.function_call_expression;
-    ArgumentList *arg_pos;
+    ArgumentList *          arg_pos;
 
     for (arg_pos = fce->argument; arg_pos; arg_pos = arg_pos->next) {
         generate_expression(exe, block, arg_pos->expression, ob);
@@ -559,8 +528,7 @@ generate_function_call_expression(DVM_Executable *exe, Block *block,
 
 static void
 generate_expression(DVM_Executable *exe, Block *current_block,
-                    Expression *expr, OpcodeBuf *ob)
-{
+                    Expression *expr, OpcodeBuf *ob) {
     switch (expr->kind) {
     case BOOLEAN_EXPRESSION:
         generate_boolean_expression(exe, expr, ob);
@@ -639,7 +607,7 @@ generate_expression(DVM_Executable *exe, Block *current_block,
         generate_expression(exe, current_block, expr->u.minus_expression, ob);
         generate_code(ob, expr->line_number,
                       DVM_MINUS_INT
-                      + get_opcode_type_offset(expr->type->basic_type));
+                          + get_opcode_type_offset(expr->type->basic_type));
         break;
     case LOGICAL_NOT_EXPRESSION:
         generate_expression(exe, current_block, expr->u.logical_not, ob);
@@ -649,7 +617,7 @@ generate_expression(DVM_Executable *exe, Block *current_block,
         generate_function_call_expression(exe, current_block,
                                           expr, ob);
         break;
-    case INCREMENT_EXPRESSION:  /* FALLTHRU */
+    case INCREMENT_EXPRESSION: /* FALLTHRU */
     case DECREMENT_EXPRESSION:
         generate_inc_dec_expression(exe, current_block, expr, expr->kind,
                                     ob, DVM_FALSE);
@@ -657,7 +625,7 @@ generate_expression(DVM_Executable *exe, Block *current_block,
     case CAST_EXPRESSION:
         generate_cast_expression(exe, current_block, expr, ob);
         break;
-    case EXPRESSION_KIND_COUNT_PLUS_1:  /* FALLTHRU */
+    case EXPRESSION_KIND_COUNT_PLUS_1: /* FALLTHRU */
     default:
         DBG_assert(0, ("expr->kind..%d", expr->kind));
     }
@@ -665,8 +633,7 @@ generate_expression(DVM_Executable *exe, Block *current_block,
 
 static void
 generate_expression_statement(DVM_Executable *exe, Block *block,
-                              Expression *expr, OpcodeBuf *ob)
-{
+                              Expression *expr, OpcodeBuf *ob) {
     if (expr->kind == ASSIGN_EXPRESSION) {
         generate_assign_expression(exe, block, expr, ob, DVM_TRUE);
     } else if (expr->kind == INCREMENT_EXPRESSION
@@ -681,16 +648,15 @@ generate_expression_statement(DVM_Executable *exe, Block *block,
 
 static void generate_statement_list(DVM_Executable *exe, Block *current_block,
                                     StatementList *statement_list,
-                                    OpcodeBuf *ob);
+                                    OpcodeBuf *    ob);
 
 static void
 generate_if_statement(DVM_Executable *exe, Block *block,
-                      Statement *statement, OpcodeBuf *ob)
-{
-    int if_false_label;
-    int end_label;
+                      Statement *statement, OpcodeBuf *ob) {
+    int          if_false_label;
+    int          end_label;
     IfStatement *if_s = &statement->u.if_s;
-    Elsif *elsif;
+    Elsif *      elsif;
 
     generate_expression(exe, block, if_s->condition, ob);
     if_false_label = get_label(ob);
@@ -722,9 +688,8 @@ generate_if_statement(DVM_Executable *exe, Block *block,
 
 static void
 generate_while_statement(DVM_Executable *exe, Block *block,
-                         Statement *statement, OpcodeBuf *ob)
-{
-    int loop_label;
+                         Statement *statement, OpcodeBuf *ob) {
+    int             loop_label;
     WhileStatement *while_s = &statement->u.while_s;
 
     loop_label = get_label(ob);
@@ -732,7 +697,7 @@ generate_while_statement(DVM_Executable *exe, Block *block,
 
     generate_expression(exe, block, while_s->condition, ob);
 
-    while_s->block->parent.statement.break_label = get_label(ob);
+    while_s->block->parent.statement.break_label    = get_label(ob);
     while_s->block->parent.statement.continue_label = get_label(ob);
 
     generate_code(ob, statement->line_number,
@@ -748,9 +713,8 @@ generate_while_statement(DVM_Executable *exe, Block *block,
 
 static void
 generate_for_statement(DVM_Executable *exe, Block *block,
-                       Statement *statement, OpcodeBuf *ob)
-{
-    int loop_label;
+                       Statement *statement, OpcodeBuf *ob) {
+    int           loop_label;
     ForStatement *for_s = &statement->u.for_s;
 
     if (for_s->init) {
@@ -763,7 +727,7 @@ generate_for_statement(DVM_Executable *exe, Block *block,
         generate_expression(exe, block, for_s->condition, ob);
     }
 
-    for_s->block->parent.statement.break_label = get_label(ob);
+    for_s->block->parent.statement.break_label    = get_label(ob);
     for_s->block->parent.statement.continue_label = get_label(ob);
 
     if (for_s->condition) {
@@ -787,8 +751,7 @@ generate_for_statement(DVM_Executable *exe, Block *block,
 
 static void
 generate_return_statement(DVM_Executable *exe, Block *block,
-                          Statement *statement, OpcodeBuf *ob)
-{
+                          Statement *statement, OpcodeBuf *ob) {
     DBG_assert(statement->u.return_s.return_value != NULL,
                ("return value is null."));
 
@@ -798,10 +761,9 @@ generate_return_statement(DVM_Executable *exe, Block *block,
 
 static void
 generate_break_statement(DVM_Executable *exe, Block *block,
-                         Statement *statement, OpcodeBuf *ob)
-{
+                         Statement *statement, OpcodeBuf *ob) {
     BreakStatement *break_s = &statement->u.break_s;
-    Block       *block_p;
+    Block *         block_p;
 
     for (block_p = block; block_p; block_p = block_p->outer_block) {
         if (block_p->type != WHILE_STATEMENT_BLOCK
@@ -818,7 +780,7 @@ generate_break_statement(DVM_Executable *exe, Block *block,
 
             if (!strcmp(break_s->label,
                         block_p->parent.statement.statement
-                        ->u.while_s.label)) {
+                            ->u.while_s.label)) {
                 break;
             }
         } else if (block_p->type == FOR_STATEMENT_BLOCK) {
@@ -827,7 +789,7 @@ generate_break_statement(DVM_Executable *exe, Block *block,
 
             if (!strcmp(break_s->label,
                         block_p->parent.statement.statement
-                        ->u.for_s.label)) {
+                            ->u.for_s.label)) {
                 break;
             }
         }
@@ -842,16 +804,13 @@ generate_break_statement(DVM_Executable *exe, Block *block,
     generate_code(ob, statement->line_number,
                   DVM_JUMP,
                   block_p->parent.statement.break_label);
-
 }
 
 static void
 generate_continue_statement(DVM_Executable *exe, Block *block,
-                            Statement *statement, OpcodeBuf *ob)
-{
+                            Statement *statement, OpcodeBuf *ob) {
     ContinueStatement *continue_s = &statement->u.continue_s;
-    Block       *block_p;
-    
+    Block *            block_p;
 
     for (block_p = block; block_p; block_p = block_p->outer_block) {
         if (block_p->type != WHILE_STATEMENT_BLOCK
@@ -868,7 +827,7 @@ generate_continue_statement(DVM_Executable *exe, Block *block,
 
             if (!strcmp(continue_s->label,
                         block_p->parent.statement.statement
-                        ->u.while_s.label)) {
+                            ->u.while_s.label)) {
                 break;
             }
         } else if (block_p->type == FOR_STATEMENT_BLOCK) {
@@ -877,7 +836,7 @@ generate_continue_statement(DVM_Executable *exe, Block *block,
 
             if (!strcmp(continue_s->label,
                         block_p->parent.statement.statement
-                        ->u.for_s.label)) {
+                            ->u.for_s.label)) {
                 break;
             }
         }
@@ -895,8 +854,7 @@ generate_continue_statement(DVM_Executable *exe, Block *block,
 
 static void
 generate_initializer(DVM_Executable *exe, Block *block,
-                     Statement *statement, OpcodeBuf *ob)
-{
+                     Statement *statement, OpcodeBuf *ob) {
     Declaration *decl = statement->u.declaration_s;
     if (decl->initializer == NULL)
         return;
@@ -908,8 +866,7 @@ generate_initializer(DVM_Executable *exe, Block *block,
 static void
 generate_statement_list(DVM_Executable *exe, Block *current_block,
                         StatementList *statement_list,
-                        OpcodeBuf *ob)
-{
+                        OpcodeBuf *    ob) {
     StatementList *pos;
 
     for (pos = statement_list; pos; pos = pos->next) {
@@ -955,35 +912,33 @@ generate_statement_list(DVM_Executable *exe, Block *current_block,
 }
 
 static void
-init_opcode_buf(OpcodeBuf *ob)
-{
-    ob->size = 0;
-    ob->alloc_size = 0;
-    ob->code = NULL;
-    ob->label_table_size = 0;
+init_opcode_buf(OpcodeBuf *ob) {
+    ob->size                   = 0;
+    ob->alloc_size             = 0;
+    ob->code                   = NULL;
+    ob->label_table_size       = 0;
     ob->label_table_alloc_size = 0;
-    ob->label_table = NULL;
-    ob->line_number_size = 0;
-    ob->line_number = NULL;
+    ob->label_table            = NULL;
+    ob->line_number_size       = 0;
+    ob->line_number            = NULL;
 }
 
 static void
-fix_labels(OpcodeBuf *ob)
-{
-    int i;
-    int j;
+fix_labels(OpcodeBuf *ob) {
+    int         i;
+    int         j;
     OpcodeInfo *info;
-    int label;
-    int address;
+    int         label;
+    int         address;
 
     for (i = 0; i < ob->size; i++) {
         if (ob->code[i] == DVM_JUMP
             || ob->code[i] == DVM_JUMP_IF_TRUE
             || ob->code[i] == DVM_JUMP_IF_FALSE) {
-            label = (ob->code[i+1] << 8) + (ob->code[i+2]);
-            address = ob->label_table[label].label_address;
-            ob->code[i+1] = (DVM_Byte)(address >> 8);
-            ob->code[i+2] = (DVM_Byte)(address &0xff);
+            label           = (ob->code[i + 1] << 8) + (ob->code[i + 2]);
+            address         = ob->label_table[label].label_address;
+            ob->code[i + 1] = (DVM_Byte)(address >> 8);
+            ob->code[i + 2] = (DVM_Byte)(address & 0xff);
         }
         info = &dvm_opcode_info[ob->code[i]];
         for (j = 0; info->parameter[j] != '\0'; j++) {
@@ -1003,8 +958,7 @@ fix_labels(OpcodeBuf *ob)
 }
 
 static DVM_Byte *
-fix_opcode_buf(OpcodeBuf *ob)
-{
+fix_opcode_buf(OpcodeBuf *ob) {
     DVM_Byte *ret;
 
     fix_labels(ob);
@@ -1015,11 +969,10 @@ fix_opcode_buf(OpcodeBuf *ob)
 }
 
 static int
-calc_need_stack_size(DVM_Byte *code, int code_size)
-{
-    int i, j;
-    int stack_size = 0;
-    OpcodeInfo  *info;
+calc_need_stack_size(DVM_Byte *code, int code_size) {
+    int         i, j;
+    int         stack_size = 0;
+    OpcodeInfo *info;
 
     for (i = 0; i < code_size; i++) {
         info = &dvm_opcode_info[code[i]];
@@ -1045,36 +998,32 @@ calc_need_stack_size(DVM_Byte *code, int code_size)
 }
 
 static void
-copy_function(FunctionDefinition *src, DVM_Function *dest)
-{
-    dest->type = copy_type_specifier(src->type);
-    dest->name = MEM_strdup(src->name);
+copy_function(FunctionDefinition *src, DVM_Function *dest) {
+    dest->type      = copy_type_specifier(src->type);
+    dest->name      = MEM_strdup(src->name);
     dest->parameter = copy_parameter_list(src->parameter,
                                           &dest->parameter_count);
     if (src->block) {
-        dest->local_variable
-            = copy_local_variables(src, dest->parameter_count);
-        dest->local_variable_count
-            = src->local_variable_count - dest->parameter_count;
+        dest->local_variable       = copy_local_variables(src, dest->parameter_count);
+        dest->local_variable_count = src->local_variable_count - dest->parameter_count;
     } else {
-        dest->local_variable = NULL;
+        dest->local_variable       = NULL;
         dest->local_variable_count = 0;
     }
 }
 
 static void
-add_functions(DKC_Compiler *compiler, DVM_Executable *exe)
-{
-    FunctionDefinition  *fd;
-    int         i;
-    int         func_count = 0;
+add_functions(DKC_Compiler *compiler, DVM_Executable *exe) {
+    FunctionDefinition *fd;
+    int                 i;
+    int                 func_count = 0;
     OpcodeBuf           ob;
 
     for (fd = compiler->function_list; fd; fd = fd->next) {
         func_count++;
     }
     exe->function_count = func_count;
-    exe->function = MEM_malloc(sizeof(DVM_Function) * func_count);
+    exe->function       = MEM_malloc(sizeof(DVM_Function) * func_count);
 
     for (fd = compiler->function_list, i = 0; fd; fd = fd->next, i++) {
         copy_function(fd, &exe->function[i]);
@@ -1083,14 +1032,13 @@ add_functions(DKC_Compiler *compiler, DVM_Executable *exe)
             generate_statement_list(exe, fd->block, fd->block->statement_list,
                                     &ob);
 
-            exe->function[i].is_implemented = DVM_TRUE;
-            exe->function[i].code_size = ob.size;
-            exe->function[i].code = fix_opcode_buf(&ob);
+            exe->function[i].is_implemented   = DVM_TRUE;
+            exe->function[i].code_size        = ob.size;
+            exe->function[i].code             = fix_opcode_buf(&ob);
             exe->function[i].line_number_size = ob.line_number_size;
-            exe->function[i].line_number = ob.line_number;
-            exe->function[i].need_stack_size
-                = calc_need_stack_size(exe->function[i].code,
-                                       exe->function[i].code_size);
+            exe->function[i].line_number      = ob.line_number;
+            exe->function[i].need_stack_size  = calc_need_stack_size(exe->function[i].code,
+                                                                    exe->function[i].code_size);
         } else {
             exe->function[i].is_implemented = DVM_FALSE;
         }
@@ -1098,26 +1046,23 @@ add_functions(DKC_Compiler *compiler, DVM_Executable *exe)
 }
 
 static void
-add_top_level(DKC_Compiler *compiler, DVM_Executable *exe)
-{
-    OpcodeBuf           ob;
+add_top_level(DKC_Compiler *compiler, DVM_Executable *exe) {
+    OpcodeBuf ob;
 
     init_opcode_buf(&ob);
     generate_statement_list(exe, NULL, compiler->statement_list,
                             &ob);
-    
-    exe->code_size = ob.size;
-    exe->code = fix_opcode_buf(&ob);
+
+    exe->code_size        = ob.size;
+    exe->code             = fix_opcode_buf(&ob);
     exe->line_number_size = ob.line_number_size;
-    exe->line_number = ob.line_number;
-    exe->need_stack_size = calc_need_stack_size(exe->code, exe->code_size);
+    exe->line_number      = ob.line_number;
+    exe->need_stack_size  = calc_need_stack_size(exe->code, exe->code_size);
 }
 
-
 DVM_Executable *
-dkc_generate(DKC_Compiler *compiler)
-{
-    DVM_Executable      *exe;
+dkc_generate(DKC_Compiler *compiler) {
+    DVM_Executable *exe;
 
     exe = alloc_executable();
 

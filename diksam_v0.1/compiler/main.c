@@ -4,12 +4,10 @@
 #include "DVM.h"
 #include "MEM.h"
 
-int
-main(int argc, char **argv)
-{
-    DKC_Compiler *compiler;
-    FILE *fp;
-    DVM_Executable *exe;
+int main(int argc, char **argv) {
+    DKC_Compiler *      compiler;
+    FILE *              fp;
+    DVM_Executable *    exe;
     DVM_VirtualMachine *dvm;
 
     if (argc < 2) {
@@ -25,13 +23,13 @@ main(int argc, char **argv)
 
     setlocale(LC_CTYPE, "");
     compiler = DKC_create_compiler();
-    
+
     // 词法分析 语法分析 构建语法树 修正语法树
     exe = DKC_compile(compiler, fp);
 
     // 生成中间代码
     dvm = DVM_create_virtual_machine();
-    DVM_add_executable(dvm,exe);
+    DVM_add_executable(dvm, exe);
 
     // 执行中间代码
     DVM_execute(dvm);
