@@ -421,9 +421,7 @@ get_label(OpcodeBuf *ob) {
 
     if (ob->label_table_alloc_size < ob->label_table_size + 1) {
         ob->label_table = MEM_realloc(ob->label_table,
-                                      (ob->label_table_alloc_size
-                                       + LABEL_TABLE_ALLOC_SIZE)
-                                          * sizeof(LabelTable));
+                                      (ob->label_table_alloc_size + LABEL_TABLE_ALLOC_SIZE) * sizeof(LabelTable));
         ob->label_table_alloc_size += LABEL_TABLE_ALLOC_SIZE;
     }
     ret = ob->label_table_size;
@@ -1060,6 +1058,7 @@ add_top_level(DKC_Compiler *compiler, DVM_Executable *exe) {
     exe->need_stack_size  = calc_need_stack_size(exe->code, exe->code_size);
 }
 
+// 生成虚拟机中间代码
 DVM_Executable *
 dkc_generate(DKC_Compiler *compiler) {
     DVM_Executable *exe;

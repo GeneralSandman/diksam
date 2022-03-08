@@ -24,15 +24,17 @@ int main(int argc, char **argv) {
     setlocale(LC_CTYPE, "");
     compiler = DKC_create_compiler();
 
-    // 词法分析 语法分析 构建语法树 修正语法树
+    // 词法分析 语法分析 构建语法树 修正语法树 生成中间代码
     exe = DKC_compile(compiler, fp);
 
-    // 生成中间代码
+    //
     dvm = DVM_create_virtual_machine();
     DVM_add_executable(dvm, exe);
 
     // 执行中间代码
     DVM_execute(dvm);
+
+    // 释放内存
     DKC_dispose_compiler(compiler);
     DVM_dispose_virtual_machine(dvm);
 
