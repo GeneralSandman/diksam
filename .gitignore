@@ -3,7 +3,10 @@ crowbar
 crowbar_v0.1/bin/*
 
 diksamc
+diksam
+diksam.output
 
+lex.yy.c
 y.output
 y.tab.c
 y.tab.h
