@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) 启动",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/main/diksam",
+            "args": [
+                "${workspaceFolder}/main/test/test.dkm"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [
+                {"name" :"DKM_REQUIRE_SEARCH_PATH", "value": "/Users/zhenhuli/Desktop/crowbar/diksam_v0.3/require"}
+            ],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        }
+    ]
+}
