@@ -1,7 +1,7 @@
 TARGET = compiler.o
 CC=gcc
 ENCODING_FLAG = -DSHIFT_JIS_SOURCE
-CFLAGS = -c -g -Wall -ansi -Wswitch-enum -pedantic -DDEBUG -DDKM_WINDOWS $(ENCODING_FLAG)
+CFLAGS = -c -g -Wall -ansi -Wswitch-enum -pedantic -DDEBUG $(ENCODING_FLAG)
 OBJS = \
   lex.yy.o\
   y.tab.o\

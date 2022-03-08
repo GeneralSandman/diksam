@@ -8,7 +8,7 @@ OBJS = \
   ../debug/dbg.o\
   ./main.o
 
-CFLAGS = -c -g -Wall -ansi -Wswitch-enum -DDEBUG -DDKM_WINDOWS
+CFLAGS = -c -g -Wall -ansi -Wswitch-enum -DDEBUG
 
 INCLUDES = \
   -I/usr/local/include\

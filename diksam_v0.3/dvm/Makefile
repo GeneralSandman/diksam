@@ -1,6 +1,6 @@
 TARGET = dvm.o
 CC=gcc
-CFLAGS = -c -g -DDEBUG -DDKM_WINDOWS -Wall -ansi -pedantic -Wswitch-enum
+CFLAGS = -c -g -DDEBUG -Wall -ansi -pedantic -Wswitch-enum
 OBJS = execute.o \
   load.o \
   heap.o \
